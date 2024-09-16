@@ -1,0 +1,162 @@
+Daily ETL Pipeline for Phone Brand Reviews
+1. Extract Data
+Objective: Extract relevant posts and comments from Reddit once daily.
+
+Implementation:
+
+Use PRAW to pull the latest posts and comments that mention the newly launched phone and competitors.
+Set up a scheduled task using Apache Airflow to run this extraction script daily.
+Example Code:
+
+python
+Copy code
+import praw
+from datetime import datetime
+
+def extract_data():
+    reddit = praw.Reddit(
+        client_id='YOUR_CLIENT_ID',
+        client_secret='YOUR_CLIENT_SECRET',
+        user_agent='daily_phone_review_tracker/1.0 by u/your_username'
+    )
+
+    keywords = ['OnePlus 11', 'Samsung Galaxy S23', 'iPhone 14', 'Google Pixel 7']
+    subreddits = ['smartphones', 'OnePlus', 'Samsung', 'Apple']
+
+    posts_data = []
+    for subreddit in subreddits:
+        for post in reddit.subreddit(subreddit).search(' OR '.join(keywords), time_filter='day'):
+            post_data = {
+                'post_id': post.id,
+                'title': post.title,
+                'text': post.selftext,
+                'score': post.score,
+                'timestamp': datetime.now().isoformat()
+            }
+            posts_data.append(post_data)
+    
+    return posts_data
+2. Transform Data
+Objective: Perform sentiment analysis and feature extraction on the extracted data.
+
+Implementation:
+
+Analyze the sentiment of each post.
+Extract keywords and identify which features are discussed (e.g., camera, battery).
+Example Code:
+
+python
+Copy code
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import spacy
+
+nlp = spacy.load('en_core_web_sm')
+analyzer = SentimentIntensityAnalyzer()
+
+def get_sentiment(text):
+    sentiment = analyzer.polarity_scores(text)
+    if sentiment['compound'] >= 0.05:
+        return 'positive'
+    elif sentiment['compound'] <= -0.05:
+        return 'negative'
+    else:
+        return 'neutral'
+
+def extract_keywords(text):
+    doc = nlp(text)
+    keywords = [token.lemma_ for token in doc if not token.is_stop and token.is_alpha]
+    return keywords
+
+def transform_data(posts):
+    transformed_data = []
+    for post in posts:
+        sentiment = get_sentiment(post['text'])
+        keywords = extract_keywords(post['text'])
+        transformed_data.append({
+            'post_id': post['post_id'],
+            'title': post['title'],
+            'text': post['text'],
+            'score': post['score'],
+            'sentiment': sentiment,
+            'keywords': keywords,
+            'timestamp': post['timestamp']
+        })
+    return transformed_data
+3. Load Data into AWS
+Objective: Store the transformed data into AWS for scalable storage and future analysis.
+
+Implementation:
+
+Amazon S3: For bulk storage of processed data.
+Amazon RDS or DynamoDB: For structured and fast queries.
+Example Code:
+
+python
+Copy code
+import boto3
+import json
+
+def load_data_to_s3(data):
+    s3 = boto3.client('s3')
+    bucket_name = 'your-bucket-name'
+    s3.put_object(
+        Bucket=bucket_name,
+        Key='data/reviews_{}.json'.format(datetime.now().strftime('%Y%m%d')),
+        Body=json.dumps(data)
+    )
+
+def load_data_to_dynamodb(data):
+    dynamodb = boto3.resource('dynamodb')
+    table = dynamodb.Table('phone_reviews')
+    for item in data:
+        table.put_item(Item=item)
+
+# Call these functions in your main script
+posts_data = extract_data()
+transformed_data = transform_data(posts_data)
+load_data_to_s3(transformed_data)
+load_data_to_dynamodb(transformed_data)
+4. Schedule the Script with Apache Airflow
+Objective: Automate the script to run once daily.
+
+Implementation:
+
+Define an Airflow DAG that schedules the extraction, transformation, and loading tasks to run once a day.
+Example DAG:
+
+python
+Copy code
+from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
+from datetime import datetime
+
+def daily_etl():
+    posts_data = extract_data()
+    transformed_data = transform_data(posts_data)
+    load_data_to_s3(transformed_data)
+    load_data_to_dynamodb(transformed_data)
+
+default_args = {
+    'owner': 'airflow',
+    'start_date': datetime(2024, 1, 1),
+    'retries': 1
+}
+
+dag = DAG('phone_review_daily_etl', default_args=default_args, schedule_interval='@daily')
+
+t1 = PythonOperator(task_id='daily_etl', python_callable=daily_etl, dag=dag)
+
+t1
+Summary
+Extract Data: Pull daily posts and comments mentioning your product and competitors.
+Transform Data: Analyze sentiment and extract keywords.
+Load Data: Store processed data in AWS (S3 for storage, DynamoDB for quick queries).
+Schedule: Use Apache Airflow to run the ETL process daily.
+This setup ensures you regularly collect and process reviews, helping you stay updated on user feedback and competitor performance. Let me know if you need more details or further customization!
+
+
+
+
+
+
+
