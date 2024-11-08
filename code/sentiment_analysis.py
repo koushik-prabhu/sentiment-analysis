@@ -7,6 +7,8 @@ from nltk.sentiment import SentimentIntensityAnalyzer
 import s3fs
 import boto3
 from io import StringIO
+from datetime import datetime
+
 
 class SentimentAnalysis:
 
@@ -70,7 +72,9 @@ class SentimentAnalysis:
         aws_secret_access_key = 'DD6xjw0uX0Fg+aJ0tHQg/9azmjbpoKZD/zToPo+B'
         aws_region = 'ap-south-1'  # Specify your region
         bucket = 'koushik-sentiment-analysis'
-        object_key = 'incoming/output.csv'
+        now = datetime.now()
+        date = now.strftime("%d-%m-%Y %H:%M:%S")
+        object_key = fr'incoming/output-{date}.csv'
 
         # Create an S3 file system object using s3fs
         fs = s3fs.S3FileSystem(
