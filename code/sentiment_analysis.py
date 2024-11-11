@@ -5,8 +5,7 @@ import re
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 import s3fs
-import boto3
-from io import StringIO
+import os
 from datetime import datetime
 
 
@@ -68,8 +67,10 @@ class SentimentAnalysis:
             
     def upload_to_s3(self, dataframe):
         # Manually configure AWS credentials within the script
-        aws_access_key_id = 'AKIAYDWHTD7TQ5YQJPUR'
-        aws_secret_access_key = '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'
+        aws_access_key_id = os.environ.get('aws_access_key_id')
+        aws_secret_access_key = os.environ.get('aws_secret_access_key')
+        if not aws_access_key_id and aws_secret_access_key:
+            print('AWS cred is not set')
         aws_region = 'ap-south-1'  # Specify your region
         bucket = 'koushik-sentiment-analysis'
         now = datetime.now()
