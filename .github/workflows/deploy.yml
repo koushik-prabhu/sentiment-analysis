@@ -22,25 +22,18 @@ jobs:
       - name: Set up SSH
         env:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}  # Your private key stored as GitHub secrets
-          EC2_HOST: ${{ secrets.EC2_HOST }}          # Your EC2 Host (public IP or domain)
-          EC2_USER: ${{ secrets.EC2_USER }}          # The user name to SSH as (ec2-user, ubuntu, etc.)
+          EC2_HOST: ${{ secrets.HOST_DNS }}          # Your EC2 Host (public IP or domain)
+          EC2_USER: ${{ secrets.USERNAME }}          # The user name to SSH as (ec2-user, ubuntu, etc.)
         run: |
           mkdir -p ~/.ssh
           echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa       # Set the private key from GitHub secrets to ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa                   # Secure the key
-          echo "Host $EC2_HOST" >> ~/.ssh/config     # Add your EC2 instance's host to SSH config
+          echo "Host $HOST_DNS" >> ~/.ssh/config     # Add your EC2 instance's host to SSH config
           echo "  StrictHostKeyChecking no" >> ~/.ssh/config  # Disable strict host key checking
-          echo "  User $EC2_USER" >> ~/.ssh/config   # Use the correct EC2 user (ec2-user/ubuntu)
+          echo "  User $USERNAME" >> ~/.ssh/config   # Use the correct EC2 user (ec2-user/ubuntu)
 
       # 4. Copy the required files to the EC2 instance using SCP
       - name: Copy Python Script to EC2
         run: |
-          scp -i ~/.ssh/id_rsa -r ./* ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/path/to/application/
+          scp -i ~/.ssh/id_rsa -r ./* ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }}:~/data-engineering/
       
-      # 5. SSH into EC2 and execute the Python script
-      - name: SSH into EC2 and Run Python Script
-        run: |
-          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd /path/to/application
-            python3 your_script.py  # Ensure this path is correct and adjust as necessary
-          EOF
