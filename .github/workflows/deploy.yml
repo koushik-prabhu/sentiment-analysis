@@ -21,16 +21,16 @@ jobs:
       # 3. Set up SSH with your EC2 details using GitHub secrets
       - name: Set up SSH
         env:
-          PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}  # Your private key stored as GitHub secrets
+          EC2_KEY: ${{ secrets.EC2_SSH_KEY }}  # Your private key stored as GitHub secrets
           EC2_HOST: ${{ secrets.HOST_DNS }}          # Your EC2 Host (public IP or domain)
           EC2_USER: ${{ secrets.USERNAME }}          # The user name to SSH as (ec2-user, ubuntu, etc.)
         run: |
           mkdir -p ~/.ssh
-          echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa       # Set the private key from GitHub secrets to ~/.ssh/id_rsa
+          echo "$EC2_KEY" > ~/.ssh/id_rsa       # Set the private key from GitHub secrets to ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa                   # Secure the key
-          echo "Host $HOST_DNS" >> ~/.ssh/config     # Add your EC2 instance's host to SSH config
+          echo "Host $EC2_HOST" >> ~/.ssh/config     # Add your EC2 instance's host to SSH config
           echo "  StrictHostKeyChecking no" >> ~/.ssh/config  # Disable strict host key checking
-          echo "  User $USERNAME" >> ~/.ssh/config   # Use the correct EC2 user (ec2-user/ubuntu)
+          echo "  User $EC2_USER" >> ~/.ssh/config   # Use the correct EC2 user (ec2-user/ubuntu)
 
       # 4. Copy the required files to the EC2 instance using SCP
       - name: Copy Python Script to EC2
