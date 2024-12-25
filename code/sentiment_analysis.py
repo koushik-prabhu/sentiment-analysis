@@ -8,7 +8,7 @@ import s3fs
 import os
 from datetime import datetime
 
-#code check 1.0
+#code check 1.1
 
 class SentimentAnalysis:
 
