@@ -35,5 +35,5 @@ jobs:
       # 4. Copy the required files to the EC2 instance using SCP
       - name: Copy Python Script to EC2
         run: |
-          scp -i ~/.ssh/id_rsa -r ./* ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }}:~/data-engineering/
+          scp -i ~/.ssh/id_rsa -r ./* ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }}:~/data-engineering/sentiment-analysis/
       
