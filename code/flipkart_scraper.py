@@ -91,9 +91,10 @@ class FlipkartScraper:
         for phone, address in map.items():
             print('Processing phone: ', phone)
             self.scraping(phone, address, reviews_map)
-            dataframe = pd.DataFrame(reviews_map)
             print('Process ended for phone: ',phone)
         reviews_map['data source'] = 'flipkart'
+        dataframe = pd.DataFrame(reviews_map)
+
         # dataframe.to_csv('flipkart_reviews.csv')
 
         return dataframe
