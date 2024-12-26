@@ -33,7 +33,8 @@ class FlipkartScraper:
     def scraping(self, phone, address, reviews_map):
 
         self.counter += 1
-        if self.counter == 2:
+        if self.counter == 5:
+            self.counter=0
             return reviews_map
         
         print(f'Processing page {self.counter}')
@@ -41,7 +42,7 @@ class FlipkartScraper:
         self.driver.get(address)
         # waiting until phone picture is loaded
         # this also helps to load all the js code first, so that js is not visible in the source code
-        wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="container"]/div/div[3]/div/div/div[1]/div[1]/div/a/div/div/div/img')))
+        wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="container"]/div/div[1]/div[1]/div[2]/div[1]/div/a[1]/img')))
         time.sleep(5)
         # getting the source code of the page
         content = self.driver.page_source
@@ -54,6 +55,7 @@ class FlipkartScraper:
             if card.p != None:
                 title = card.p.text
                 reviews_map['title'].append(title)
+                reviews_map['phone'].append(phone)
                 review_container = card.find('div', class_ ='ZmyHeo')
                 review = review_container.div.div.text
                 reviews_map['review'].append(review)
@@ -75,22 +77,27 @@ class FlipkartScraper:
 
         reviews_map = { 
             "title" : [],
-            "review" : []
+            "review" : [],
+            "phone" : []
         }
 
         map = {
-            "iphone" : 'https://www.flipkart.com/apple-iphone-15-black-128-gb/product-reviews/itm6ac6485515ae4?pid=MOBGTAGPTB3VS24W&lid=LSTMOBGTAGPTB3VS24WVZNSC6&marketplace=FLIPKART'
+            "iphone 15" : 'https://www.flipkart.com/apple-iphone-15-black-128-gb/product-reviews/itm6ac6485515ae4?pid=MOBGTAGPTB3VS24W&lid=LSTMOBGTAGPTB3VS24WVZNSC6&marketplace=FLIPKART',
+            "samsung s24 5G" : 'https://www.flipkart.com/samsung-galaxy-s24-5g-onyx-black-256-gb/product-reviews/itm3a85600ed78a6?pid=MOBH3P2QJYRNVHGS&lid=LSTMOBH3P2QJYRNVHGSH5N1NY&marketplace=FLIPKART',
+            "oneplus 12" : 'https://www.flipkart.com/oneplus-12-flowy-emerald-512-gb/product-reviews/itm4464454f95a2e?pid=MOBGXGT7PSGVUGZS&lid=LSTMOBGXGT7PSGVUGZS3RNSTI&marketplace=FLIPKART',
+            "pixel 8" : 'https://www.flipkart.com/google-pixel-8-hazel-256-gb/product-reviews/itm67e2a2531aaac?pid=MOBGT5F2R7MCUSWG&lid=LSTMOBGT5F2R7MCUSWGNYZQSJ&marketplace=FLIPKART'
         }
 
         for phone, address in map.items():
+            print('Processing phone: ', phone)
             self.scraping(phone, address, reviews_map)
-            reviews_map['phone'] = phone
-            reviews_map['data source'] = 'flipkart'
-            print(len(reviews_map['title']))
-            print(len(reviews_map['review']))
             dataframe = pd.DataFrame(reviews_map)
-            # dataframe.to_csv('flipkart_reviews.csv')
+            print('Process ended for phone: ',phone)
+        reviews_map['data source'] = 'flipkart'
+        # dataframe.to_csv('flipkart_reviews.csv')
 
         return dataframe
+
+
 
 

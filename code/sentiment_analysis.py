@@ -8,7 +8,6 @@ import s3fs
 import os
 from datetime import datetime
 
-#code check 1.2
 
 class SentimentAnalysis:
 
@@ -52,19 +51,16 @@ class SentimentAnalysis:
     
     def sentiment_analyzer(self, text):
         # Initialize the VADER sentiment analyzer
-
-        texts = ['not good', 'very good']
         sia = SentimentIntensityAnalyzer()
 
-        for text in texts:
-            sentiment_scores = sia.polarity_scores(text)
-            compound_score = sentiment_scores['compound']  # 'compound' gives an overall sentiment score
-            if compound_score >= 0.05:
-                return 1  # Positive sentiment
-            elif compound_score <= -0.05:
-                return -1  # Negative sentiment
-            else:
-                return 0  # Neutral sentiment
+        sentiment_scores = sia.polarity_scores(text)
+        compound_score = sentiment_scores['compound']  # 'compound' gives an overall sentiment score
+        if compound_score >= 0.05:
+            return 1  # Positive sentiment
+        elif compound_score <= -0.05:
+            return -1  # Negative sentiment
+        else:
+            return 0  # Neutral sentiment
             
     def upload_to_s3(self, dataframe):
         # Manually configure AWS credentials within the script
@@ -90,7 +86,6 @@ class SentimentAnalysis:
             # Use the 'to_csv' method of pandas, passing the S3 file object
             dataframe.to_csv(f, index=False) 
         
-
 
 if __name__ == '__main__':
     obj = SentimentAnalysis()
